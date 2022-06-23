@@ -1,0 +1,40 @@
+version: '3.3'
+
+services:
+  backend:
+    build:
+      context: ./booking
+      dockerfile: Dockerfile
+    command: gunicorn main.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./booking:/booking
+    ports:
+      - 8000:8000
+    env_file:
+      - ./booking/.env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=booking
+
+  nginx:
+    container_name: booking_nginx
+    image: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    command: [nginx-debug, '-g', 'daemon off;']
+
+
+volumes:
+  postgres_data:
+
